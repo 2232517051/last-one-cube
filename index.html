@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>天价挑战 · Last One in the Cube</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:#08090f; color:#fff; font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; overflow:hidden; }
+  #stage { position:relative; height:100dvh; max-width:calc(100dvh * 9 / 16); margin:0 auto; background:#000; overflow:hidden; }
+  video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .hidden { display:none !important; }
+
+  .overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; z-index:10; }
+  .shade { background:linear-gradient(180deg, rgba(5,6,12,0) 0%, rgba(5,6,12,.55) 30%, rgba(5,6,12,.92) 100%); padding:24px 18px calc(28px + env(safe-area-inset-bottom)); }
+
+  /* 标题屏 */
+  #title { justify-content:flex-end; background:url('poster.jpg') center/cover; }
+  #title .shade { padding-bottom:calc(44px + env(safe-area-inset-bottom)); }
+  .brand { font-size:12px; letter-spacing:3px; color:#8ea0c0; margin-bottom:10px; }
+  h1 { font-size:34px; line-height:1.15; font-weight:800; }
+  h1 .en { display:block; font-size:15px; font-weight:600; color:#ffd23f; letter-spacing:1px; margin-top:6px; }
+  .hook { font-size:13px; color:#c8d2e4; line-height:1.7; margin:14px 0 22px; }
+  .btn { display:block; width:100%; border:0; border-radius:14px; padding:16px; font-size:17px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .btn-gold { background:linear-gradient(135deg,#ffd23f,#ff9f1c); color:#241a00; box-shadow:0 6px 24px rgba(255,178,31,.35); }
+  .btn:active { transform:scale(.97); }
+
+  /* 决策层 */
+  #decision .host { font-size:19px; font-weight:800; color:#ffd23f; line-height:1.4; margin-bottom:4px; text-shadow:0 2px 8px rgba(0,0,0,.8); }
+  #decision .host-cn { font-size:13px; color:#c8d2e4; margin-bottom:16px; }
+  .opt { background:rgba(20,24,38,.88); border:1px solid rgba(255,255,255,.16); color:#fff; border-radius:14px; padding:14px 16px; font-size:16px; font-weight:700; text-align:left; margin-top:10px; backdrop-filter:blur(6px); }
+  .opt small { display:block; font-size:12px; font-weight:500; color:#9fb0cc; margin-top:3px; }
+  .opt:active { background:rgba(255,210,63,.22); border-color:#ffd23f; }
+  .timerbar { height:3px; background:rgba(255,255,255,.14); border-radius:2px; margin-bottom:14px; overflow:hidden; }
+  .timerbar i { display:block; height:100%; width:100%; background:linear-gradient(90deg,#ffd23f,#ff5714); transform-origin:left; }
+
+  /* 翻车/通关卡 */
+  .card { justify-content:center; align-items:center; text-align:center; background:rgba(5,6,12,.86); backdrop-filter:blur(8px); padding:28px; }
+  .card .icon { font-size:52px; margin-bottom:14px; }
+  .card .en { font-size:19px; font-weight:800; line-height:1.5; max-width:300px; }
+  .card .cn { font-size:14px; color:#aab8d0; line-height:1.7; margin:10px 0 26px; max-width:300px; }
+  .card .btn { max-width:280px; }
+  #winCard .en { color:#ffd23f; font-size:22px; }
+  .quote { font-size:14px; color:#8ea0c0; font-style:italic; margin-top:18px; }
+
+  /* 进度点 */
+  #acts { position:absolute; top:calc(12px + env(safe-area-inset-top)); left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:20; }
+  #acts b { width:26px; height:4px; border-radius:2px; background:rgba(255,255,255,.25); }
+  #acts b.on { background:#ffd23f; }
+  #skipHint { position:absolute; top:calc(26px + env(safe-area-inset-top)); right:12px; z-index:20; font-size:11px; color:rgba(255,255,255,.55); background:rgba(0,0,0,.35); padding:5px 10px; border-radius:12px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="vid" playsinline preload="auto"></video>
+
+  <div id="acts" class="hidden"><b id="a1"></b><b id="a2"></b><b id="a3"></b></div>
+  <div id="skipHint" class="hidden">轻点画面跳过本段 ⏭</div>
+
+  <!-- 标题屏 -->
+  <div id="title" class="overlay">
+    <div class="shade">
+      <div class="brand">FFIRE STUDIO × VIZZY LABS · 互动短剧 DEMO</div>
+      <h1>天价挑战<span class="en">LAST ONE IN THE CUBE</span></h1>
+      <p class="hook">你在自家沙发睡着，一睁眼身处百万美金挑战节目——离开就算输。<br>每幕三个选项，只有一个能活着进下一关。规律要靠你自己摸。</p>
+      <button class="btn btn-gold" id="startBtn">▶&nbsp; 开始挑战 / START</button>
+    </div>
+  </div>
+
+  <!-- 决策层 -->
+  <div id="decision" class="overlay hidden">
+    <div class="shade">
+      <div class="timerbar"><i id="tbar"></i></div>
+      <div class="host" id="hostEn"></div>
+      <div class="host-cn" id="hostCn"></div>
+      <div id="opts"></div>
+    </div>
+  </div>
+
+  <!-- 翻车卡 -->
+  <div id="failCard" class="overlay card hidden">
+    <div class="icon">💥</div>
+    <div class="en" id="failEn"></div>
+    <div class="cn" id="failCn"></div>
+    <button class="btn btn-gold" id="retryBtn">回到这一步重新选 / RETRY</button>
+  </div>
+
+  <!-- 通关卡 -->
+  <div id="winCard" class="overlay card hidden">
+    <div class="icon">🏆</div>
+    <div class="en">"LAST ONE IN THE CUBE...<br>WINS THE CUBE!!!"</div>
+    <div class="cn">KYLE 崩溃离场。一辆自卸卡车把一百万美元的硬币倒在你头上。<br>硬币堆里伸出一只手，比了个赞。</div>
+    <div class="quote">"...Can I go home now?"（……我现在能回家了吗？）</div>
+    <button class="btn btn-gold" id="replayBtn" style="margin-top:22px">再玩一次 / REPLAY</button>
+  </div>
+</div>
+
+<script>
+const V = 1; // 换视频内容时 +1 破缓存
+const seg = n => `clips/seg${String(n).padStart(2,'0')}.mp4?v=${V}`;
+
+// 剧本结构: 主线 1→2→[D1]→3→6→[D2]→7→10→[D3]→11→WIN
+const STORY = {
+  spine: [1, 2, 'D1', 3, 6, 'D2', 7, 10, 'D3', 11, 'WIN'],
+  decisions: {
+    D1: {
+      act: 1,
+      hostEn: '"FIRST ELIMINATION: THE FLOOR... IS LAVA!!"',
+      hostCn: '第一轮淘汰：地板——是岩浆！',
+      options: [
+        { en: 'Stack furniture',    cn: '叠家具堡垒，住在上面', ok: true },
+        { en: 'Grab the hose',      cn: '抢消防水管灭岩浆', fail: 4,
+          fEn: '"You made it a sauna. His hair will never forgive you."',
+          fCn: '你把这儿变成了桑拿房。他的发型永远不会原谅你。' },
+        { en: "Share Kyle's sofa",  cn: '挤上 KYLE 的沙发', fail: 5,
+          fEn: '"Kyle does not share. Kyle has never shared."',
+          fCn: 'KYLE 不分享。KYLE 从没分享过。' },
+      ],
+    },
+    D2: {
+      act: 2,
+      hostEn: '"TAKE $100,000 AND WALK AWAY... OR STAY FOR THE MILLION!"',
+      hostCn: '现在拿十万走人——或者留下赌一百万！',
+      options: [
+        { en: 'Keep sipping juice', cn: '继续嘬果汁，眼皮都不抬', ok: true },
+        { en: 'Demand the yacht',   cn: '钱留着，改要游艇', fail: 8,
+          fEn: '"The Cube does not haggle."',
+          fCn: '立方体不讲价。' },
+        { en: 'Split with Kyle',    cn: '提议跟 KYLE 平分', fail: 9,
+          fEn: "\"Alliances are banned. Kyle's respect: also gone.\"",
+          fCn: '结盟违规。KYLE 对你的尊重：也没了。' },
+      ],
+    },
+    D3: {
+      act: 3,
+      hostEn: '"LAST HAND TOUCHING... WINS IT ALL."',
+      hostCn: '最后还按着的那只手——赢下全部。',
+      options: [
+        { en: 'Order a pizza',      cn: '单手按钻石，另一只手点披萨', ok: true },
+        { en: 'Mention his mom',    cn: '心理战：提他妈妈', fail: 13,
+          fEn: '"You just made him stronger."',
+          fCn: '你只是让他变得更强了。' },
+        { en: 'Fake a fire',        cn: '假喊着火，骗他松手', fail: 12,
+          fEn: '"You gestured. Rookie mistake."',
+          fCn: '你喊的时候比划了。新手错误。' },
+      ],
+    },
+  },
+};
+
+const $ = id => document.getElementById(id);
+const vid = $('vid');
+let spineIdx = 0, pendingDecision = null;
+
+function setActs(act) {
+  $('acts').classList.remove('hidden');
+  for (let i = 1; i <= 3; i++) $('a' + i).classList.toggle('on', i <= act);
+}
+
+function playClip(n, onEnd) {
+  vid.onended = null;
+  vid.src = seg(n);
+  vid.onended = onEnd;
+  const p = vid.play();
+  if (p) p.catch(() => vid.addEventListener('canplay', () => vid.play(), { once: true }));
+}
+
+// 预热 HTTP 缓存 (fire-and-forget)
+const warmed = new Set();
+function prefetch(n) {
+  if (!n || warmed.has(n)) return;
+  warmed.add(n);
+  fetch(seg(n)).catch(() => {});
+}
+
+function advance() {
+  const step = STORY.spine[spineIdx];
+  if (step === 'WIN') { showWin(); return; }
+  if (typeof step === 'string') { showDecision(step); return; }
+  const nextStep = STORY.spine[spineIdx + 1];
+  playClip(step, () => { spineIdx++; advance(); });
+  if (typeof nextStep === 'number') setTimeout(() => prefetch(nextStep), 2000);
+  else if (typeof nextStep === 'string' && nextStep !== 'WIN')
+    setTimeout(() => prefetch(STORY.spine[spineIdx + 2]), 2000);  // 决策后的正解段
+}
+
+function showDecision(key) {
+  const d = STORY.decisions[key];
+  pendingDecision = key;
+  setActs(d.act);
+  $('hostEn').textContent = d.hostEn;
+  $('hostCn').textContent = d.hostCn;
+  const box = $('opts'); box.innerHTML = '';
+  const shuffled = d.options.slice().sort(() => Math.random() - .5);
+  shuffled.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'btn opt';
+    b.innerHTML = `${o.en}<small>${o.cn}</small>`;
+    b.onclick = () => pick(o);
+    box.appendChild(b);
+  });
+  $('decision').classList.remove('hidden');
+  const bar = $('tbar');
+  bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)';
+  requestAnimationFrame(() => { bar.style.transition = 'transform 12s linear'; bar.style.transform = 'scaleX(0)'; });
+}
+
+function pick(o) {
+  $('decision').classList.add('hidden');
+  if (o.ok) {
+    spineIdx++;
+    advance();
+  } else {
+    playClip(o.fail, () => {
+      $('failEn').textContent = o.fEn;
+      $('failCn').textContent = o.fCn;
+      $('failCard').classList.remove('hidden');
+    });
+  }
+}
+
+$('retryBtn').onclick = () => {
+  $('failCard').classList.add('hidden');
+  showDecision(pendingDecision);
+};
+
+function showWin() {
+  $('acts').classList.add('hidden');
+  $('skipHint').classList.add('hidden');
+  $('winCard').classList.remove('hidden');
+}
+
+$('replayBtn').onclick = () => {
+  $('winCard').classList.add('hidden');
+  spineIdx = 0;
+  $('title').classList.remove('hidden');
+};
+
+$('startBtn').onclick = () => {
+  $('title').classList.add('hidden');
+  $('skipHint').classList.remove('hidden');
+  spineIdx = 0;
+  advance();
+};
+
+$('stage').addEventListener('click', e => {
+  if (e.target.closest('button')) return;
+  if (!$('decision').classList.contains('hidden')) return;
+  if (!$('failCard').classList.contains('hidden')) return;
+  if (!$('winCard').classList.contains('hidden')) return;
+  if (!$('title').classList.contains('hidden')) return;
+  if (vid.duration && vid.onended) { const f = vid.onended; vid.onended = null; vid.pause(); f(); }
+});
+</script>
+</body>
+</html>
