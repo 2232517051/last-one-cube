@@ -25,7 +25,6 @@
   .btn:active { transform:scale(.97); }
 
   /* Decision */
-  #decision .host { font-size:19px; font-weight:800; color:#ffd23f; line-height:1.4; margin-bottom:16px; text-shadow:0 2px 8px rgba(0,0,0,.8); }
   .opt { background:rgba(20,24,38,.88); border:1px solid rgba(255,255,255,.16); color:#fff; border-radius:14px; padding:14px 16px; font-size:16px; font-weight:700; text-align:left; margin-top:10px; backdrop-filter:blur(6px); }
   .opt small { display:block; font-size:12px; font-weight:500; color:#9fb0cc; margin-top:3px; }
   .opt:active { background:rgba(255,210,63,.22); border-color:#ffd23f; }
@@ -70,7 +69,6 @@
   <div id="decision" class="overlay hidden">
     <div class="shade">
       <div class="timerbar"><i id="tbar"></i></div>
-      <div class="host" id="hostEn"></div>
       <div id="opts"></div>
     </div>
   </div>
@@ -103,7 +101,6 @@ const STORY = {
   decisions: {
     D1: {
       act: 1,
-      hostEn: '"FIRST ELIMINATION: THE FLOOR... IS LAVA!!"',
       options: [
         { en: 'Stack furniture', sub: 'Couch + table + lamp. Go up.', ok: true },
         { en: 'Grab the hose', sub: 'Put the lava out.', fail: 4,
@@ -116,7 +113,6 @@ const STORY = {
     },
     D2: {
       act: 2,
-      hostEn: '"TAKE $100,000 AND WALK AWAY... OR STAY FOR THE MILLION!"',
       options: [
         { en: 'Keep sipping juice', sub: "Don't even look up.", ok: true },
         { en: 'Demand the yacht', sub: 'Negotiate something bigger.', fail: 8,
@@ -129,7 +125,6 @@ const STORY = {
     },
     D3: {
       act: 3,
-      hostEn: '"LAST HAND TOUCHING... WINS IT ALL."',
       options: [
         { en: 'Order a pizza', sub: 'One hand stays. Get comfortable.', ok: true },
         { en: 'Mention his mom', sub: 'Classic psychological warfare.', fail: 13,
@@ -183,7 +178,6 @@ function showDecision(key) {
   pendingDecision = key;
   setActs(d.act);
   $('skipBtn').classList.add('hidden');
-  $('hostEn').textContent = d.hostEn;
   const box = $('opts'); box.innerHTML = '';
   const shuffled = d.options.slice().sort(() => Math.random() - .5);
   shuffled.forEach(o => {
