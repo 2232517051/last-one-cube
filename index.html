@@ -25,8 +25,7 @@
   .btn:active { transform:scale(.97); }
 
   /* Decision */
-  .opt { background:rgba(20,24,38,.88); border:1px solid rgba(255,255,255,.16); color:#fff; border-radius:14px; padding:14px 16px; font-size:16px; font-weight:700; text-align:left; margin-top:10px; backdrop-filter:blur(6px); }
-  .opt small { display:block; font-size:12px; font-weight:500; color:#9fb0cc; margin-top:3px; }
+  .opt { background:rgba(20,24,38,.88); border:1px solid rgba(255,255,255,.16); color:#fff; border-radius:14px; padding:16px; font-size:16px; font-weight:700; text-align:left; margin-top:10px; backdrop-filter:blur(6px); }
   .opt:active { background:rgba(255,210,63,.22); border-color:#ffd23f; }
   .timerbar { height:3px; background:rgba(255,255,255,.14); border-radius:2px; margin-bottom:14px; overflow:hidden; }
   .timerbar i { display:block; height:100%; width:100%; background:linear-gradient(90deg,#ffd23f,#ff5714); transform-origin:left; }
@@ -102,11 +101,11 @@ const STORY = {
     D1: {
       act: 1,
       options: [
-        { en: 'Stack furniture', sub: 'Couch + table + lamp. Go up.', ok: true },
-        { en: 'Grab the hose', sub: 'Put the lava out.', fail: 4,
+        { en: 'Stack furniture', ok: true },
+        { en: 'Grab the hose', fail: 4,
           fEn: '"You made it a sauna."',
           fSub: 'His hair will never forgive you.' },
-        { en: "Share Kyle's sofa", sub: 'His island has room.', fail: 5,
+        { en: "Share Kyle's sofa", fail: 5,
           fEn: '"Kyle does not share."',
           fSub: 'Kyle has never shared.' },
       ],
@@ -114,11 +113,11 @@ const STORY = {
     D2: {
       act: 2,
       options: [
-        { en: 'Keep sipping juice', sub: "Don't even look up.", ok: true },
-        { en: 'Demand the yacht', sub: 'Negotiate something bigger.', fail: 8,
+        { en: 'Keep sipping juice', ok: true },
+        { en: 'Demand the yacht', fail: 8,
           fEn: '"The Cube does not haggle."',
           fSub: 'NEGOTIATION DETECTED. Ejection seat engaged.' },
-        { en: 'Split with Kyle', sub: '50/50. Everybody wins.', fail: 9,
+        { en: 'Split with Kyle', fail: 9,
           fEn: '"Alliances are banned."',
           fSub: "Kyle's respect: also gone." },
       ],
@@ -126,11 +125,11 @@ const STORY = {
     D3: {
       act: 3,
       options: [
-        { en: 'Order a pizza', sub: 'One hand stays. Get comfortable.', ok: true },
-        { en: 'Mention his mom', sub: 'Classic psychological warfare.', fail: 13,
+        { en: 'Order a pizza', ok: true },
+        { en: 'Mention his mom', fail: 13,
           fEn: '"You just made him stronger."',
           fSub: 'His mother is his SPONSOR.' },
-        { en: 'Fake a fire', sub: 'Clear the room.', fail: 12,
+        { en: 'Fake a fire', fail: 12,
           fEn: '"You gestured. Rookie mistake."',
           fSub: 'FALSE ALARM. HAND REMOVED FROM DIAMOND.' },
       ],
@@ -183,7 +182,7 @@ function showDecision(key) {
   shuffled.forEach(o => {
     const b = document.createElement('button');
     b.className = 'btn opt';
-    b.innerHTML = `${o.en}<small>${o.sub}</small>`;
+    b.textContent = o.en;
     b.onclick = () => pick(o);
     box.appendChild(b);
   });
